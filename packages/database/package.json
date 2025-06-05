@@ -1,0 +1,23 @@
+{
+  "name": "@taxi-mysore/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "db:studio": "prisma studio",
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rm -rf .turbo node_modules dist"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.10.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "prisma": "^5.10.2",
+    "typescript": "^5.4.2"
+  }
+} 

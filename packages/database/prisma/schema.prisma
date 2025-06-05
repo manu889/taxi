@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  CORPORATE_ADMIN
+  DRIVER
+}
+
+enum ServiceType {
+  OUTSTATION
+  HOURLY
+  PACKAGE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  DRIVER_ASSIGNED
+  IN_PROGRESS
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+  CORPORATE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  phone         String
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  corporateAccount CorporateAccount? @relation("CorporateAdmin")
+  employeeOf    CorporateAccount? @relation("Employee")
+  driverProfile Driver?
+}
+
+model CorporateAccount {
+  id            String    @id @default(cuid())
+  name          String
+  gstin         String?   @unique
+  address       String
+  phone         String
+  email         String    @unique
+  adminId       String    @unique
+  admin         User      @relation("CorporateAdmin", fields: [adminId], references: [id])
+  employees     User[]    @relation("Employee")
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  policies      CorporatePolicy[]
+}
+
+model CorporatePolicy {
+  id              String    @id @default(cuid())
+  corporateId     String
+  corporate       CorporateAccount @relation(fields: [corporateId], references: [id])
+  maxAmount       Float
+  requireApproval Boolean   @default(false)
+  allowedServices ServiceType[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  type          String
+  model         String
+  registration  String    @unique
+  capacity      Int
+  features      String[]
+  images        String[]
+  isAvailable   Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+  drivers       Driver[]
+}
+
+model Driver {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  licenseNumber String    @unique
+  experience    Int
+  rating        Float     @default(5.0)
+  isAvailable   Boolean   @default(true)
+  vehicles      Vehicle[]
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model OutstationRoute {
+  id            String    @id @default(cuid())
+  fromCity      String
+  toCity        String
+  distance      Float
+  basePrice     Float
+  vehiclePrices Json      // Map of vehicle type to price
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+}
+
+model HourlyPackage {
+  id            String    @id @default(cuid())
+  name          String
+  hours         Int
+  kilometers    Int
+  basePrice     Float
+  vehiclePrices Json      // Map of vehicle type to price
+  overtimeRate  Float
+  extraKmRate   Float
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+}
+
+model TourPackage {
+  id            String    @id @default(cuid())
+  name          String
+  description   String
+  duration      Int       // in days
+  itinerary     Json      // Array of day-wise activities
+  inclusions    String[]
+  exclusions    String[]
+  basePrice     Float
+  vehiclePrices Json      // Map of vehicle type to price
+  images        String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  corporateId     String?
+  corporate       CorporateAccount? @relation(fields: [corporateId], references: [id])
+  serviceType     ServiceType
+  status          BookingStatus @default(PENDING)
+  pickupLocation  String
+  dropLocation    String?
+  pickupTime      DateTime
+  returnTime      DateTime?
+  passengers      Int
+  luggage         Int
+  vehicleId       String?
+  vehicle         Vehicle?      @relation(fields: [vehicleId], references: [id])
+  driverId        String?
+  driver          Driver?       @relation(fields: [driverId], references: [id])
+  outstationRouteId String?
+  outstationRoute OutstationRoute? @relation(fields: [outstationRouteId], references: [id])
+  hourlyPackageId String?
+  hourlyPackage   HourlyPackage? @relation(fields: [hourlyPackageId], references: [id])
+  tourPackageId   String?
+  tourPackage     TourPackage? @relation(fields: [tourPackageId], references: [id])
+  totalAmount     Float
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentMethod   PaymentMethod?
+  payment         PaymentTransaction?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model PaymentTransaction {
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  booking       Booking   @relation(fields: [bookingId], references: [id])
+  amount        Float
+  currency      String    @default("INR")
+  status        PaymentStatus
+  gateway       String    // e.g., "RAZORPAY", "STRIPE"
+  gatewayId     String?   // Payment gateway's transaction ID
+  metadata      Json?     // Additional payment gateway data
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+} 

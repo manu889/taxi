@@ -1,0 +1,7 @@
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* (Optional) Reset or global styles */
+* { box-sizing: border-box; margin: 0; padding: 0; } 
