@@ -1,71 +1,48 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
   Users, Luggage, Car, Shield, 
   CheckCircle2, ChevronRight, Clock,
   Wifi, Snowflake, Coffee, MapPin,
-  Calendar, Plane
+  Calendar, Plane, ArrowLeft
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { formatPrice } from "@/lib/price-calculator";
 
 const vehicles = [
   {
-    name: "Sedan",
-    description: "Perfect for individuals and small families traveling light",
-    image: "/images/fleet/sedan.jpg",
-    features: [
-      { icon: Users, text: "4 Passengers" },
-      { icon: Luggage, text: "2 Large Bags" },
-      { icon: Car, text: "Toyota Etios" },
-      { icon: Clock, text: "24/7 Service" }
-    ],
-    amenities: ["AC", "Music System", "Comfortable Seats"],
-    price: "Starting from ₹500"
+    id: 1,
+    name: "Toyota Etios",
+    image: "/images/Etios.png",
+    capacity: 4,
+    features: ["AC", "Music System", "Comfortable Seats"],
+    price: "₹15/km",
+    basePrice: 2500,
   },
   {
-    name: "SUV",
-    description: "Spacious and comfortable for families and groups with more luggage",
-    image: "/images/fleet/suv.jpg",
-    features: [
-      { icon: Users, text: "6 Passengers" },
-      { icon: Luggage, text: "4 Large Bags" },
-      { icon: Car, text: "Toyota Innova" },
-      { icon: Clock, text: "24/7 Service" }
-    ],
-    amenities: ["AC", "Music System", "Comfortable Seats", "Extra Legroom"],
-    price: "Starting from ₹1,500"
+    id: 2,
+    name: "Maruti Ertiga",
+    image: "/images/Ertiga.png",
+    capacity: 6,
+    features: ["AC", "Music System", "Spacious Interior"],
+    price: "₹18/km",
+    basePrice: 3000,
   },
   {
-    name: "Premium SUV",
-    description: "Luxury travel experience with premium amenities",
-    image: "/images/fleet/premium-suv.jpg",
-    features: [
-      { icon: Users, text: "6 Passengers" },
-      { icon: Luggage, text: "4 Large Bags" },
-      { icon: Car, text: "Toyota Fortuner" },
-      { icon: Clock, text: "24/7 Service" }
-    ],
-    amenities: ["AC", "Premium Sound System", "Leather Seats", "Extra Legroom", "Refreshments"],
-    price: "Starting from ₹2,000"
+    id: 3,
+    name: "Maruti Dzire",
+    image: "/images/Dzire.png",
+    capacity: 4,
+    features: ["AC", "Music System", "Premium Interior"],
+    price: "₹16/km",
+    basePrice: 2800,
   },
-  {
-    name: "Tempo Traveler",
-    description: "Ideal for large groups and family outings",
-    image: "/images/fleet/tempo.jpg",
-    features: [
-      { icon: Users, text: "12 Passengers" },
-      { icon: Luggage, text: "8 Large Bags" },
-      { icon: Car, text: "Force Tempo" },
-      { icon: Clock, text: "24/7 Service" }
-    ],
-    amenities: ["AC", "Music System", "Comfortable Seats", "Spacious Interior"],
-    price: "Starting from ₹3,000"
-  }
 ];
 
 const amenities = [
@@ -102,260 +79,232 @@ const amenities = [
 ];
 
 export default function VehicleSelectionPage() {
-  const searchParams = useSearchParams();
-  const bookingType = searchParams.get("type") || "one-way";
-  const from = searchParams.get("from") || "";
-  const to = searchParams.get("to") || "";
-  const date = searchParams.get("date") || "";
-  const time = searchParams.get("time") || "";
-  const returnDate = searchParams.get("returnDate") || "";
-  const returnTime = searchParams.get("returnTime") || "";
-  const flightNumber = searchParams.get("flightNumber") || "";
-  const passengers = searchParams.get("passengers") || "1";
+  const router = useRouter();
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<number | null>(null);
 
-  const getBookingSummary = () => {
-    switch (bookingType) {
-      case "airport":
-        return (
-          <>
-            <div className="flex items-center gap-2">
-              <Plane className="h-4 w-4 text-primary" />
-              <span>Flight: {flightNumber}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>{from} → {to}</span>
-            </div>
-          </>
-        );
-      case "round-trip":
-        return (
-          <>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>{from} ↔ {to}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>Departure: {date} at {time}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>Return: {returnDate} at {returnTime}</span>
-            </div>
-          </>
-        );
-      default:
-        return (
-          <>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>{from} → {to}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>{date} at {time}</span>
-            </div>
-          </>
-        );
+  useEffect(() => {
+    // Get booking data from localStorage
+    const storedData = localStorage.getItem("bookingData");
+    if (!storedData) {
+      router.push("/"); // Redirect to home if no booking data
+      return;
+    }
+    setBookingData(JSON.parse(storedData));
+  }, [router]);
+
+  const handleVehicleSelect = (vehicleId: number) => {
+    setSelectedVehicle(vehicleId);
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (vehicle) {
+      // Update booking data with selected vehicle
+      const updatedData = {
+        ...bookingData,
+        selectedVehicle: vehicle,
+        finalPrice: vehicle.basePrice + (bookingData.distance * parseInt(vehicle.price.replace("₹", "").replace("/km", "")))
+      };
+      localStorage.setItem("bookingData", JSON.stringify(updatedData));
     }
   };
 
-  const getBackLink = () => {
-    switch (bookingType) {
-      case "airport":
-        return "/airport";
-      case "round-trip":
-        return "/?tab=round-trip";
-      case "local":
-        return "/?tab=local";
-      default:
-        return "/?tab=one-way";
+  const handleContinue = () => {
+    if (selectedVehicle) {
+      router.push("/booking/personal-details");
     }
   };
+
+  if (!bookingData) {
+    return null; // or loading state
+  }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/40 via-blue-200 to-white py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center mb-8"
-            >
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Choose Your Vehicle
-              </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Select from our range of comfortable and reliable vehicles for your journey.
-                All vehicles are well-maintained and driven by professional chauffeurs.
-              </p>
-            </motion.div>
-
-            {/* Booking Summary */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-primary/30 mb-8"
-            >
-              <h2 className="text-xl font-semibold mb-4">Booking Summary</h2>
-              <div className="space-y-2">
-                {getBookingSummary()}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        {/* Mobile Booking Summary - Only visible on small screens */}
+        <div className="md:hidden mb-4">
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-lg">Booking Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>{passengers} Passenger{passengers !== "1" ? "s" : ""}</span>
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">From</p>
+                    <p className="font-medium text-sm">{bookingData.pickup}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">To</p>
+                    <p className="font-medium text-sm">{bookingData.dropoff}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Date & Time</p>
+                    <p className="font-medium text-sm">
+                      {new Date(bookingData.date).toLocaleDateString()} at {bookingData.time}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Passengers</p>
+                    <p className="font-medium text-sm">{bookingData.passengers}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Car className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Distance</p>
+                    <p className="font-medium text-sm">{bookingData.distance} km</p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-
-            <div className="text-center">
-              <Link href={getBackLink()}>
-                <Button variant="outline" className="rounded-full">
-                  <ChevronRight className="mr-2 h-4 w-4 rotate-180" />
-                  Back to Booking
-                </Button>
-              </Link>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
 
-      {/* Vehicle Selection */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Available Vehicles</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Choose from our selection of vehicles for your journey
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {vehicles
-              .filter(vehicle => vehicle.name !== 'Tempo Traveler')
-              .map((vehicle, index) => (
-              <motion.div
-                key={vehicle.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="min-w-[300px]"
-              >
-                <Card className="overflow-hidden">
-                  <div className="relative h-64">
-                    <img
-                      src={vehicle.image}
-                      alt={vehicle.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                      <div className="p-6 text-white">
-                        <h3 className="text-2xl font-bold mb-2">{vehicle.name}</h3>
-                        <p className="text-white/90">{vehicle.description}</p>
-                      </div>
+        <div className="grid md:grid-cols-3 gap-4 sm:gap-8">
+          {/* Desktop Booking Summary - Hidden on mobile */}
+          <div className="hidden md:block md:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Booking Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">From</p>
+                      <p className="font-medium">{bookingData.pickup}</p>
                     </div>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      {vehicle.features.map((feature) => (
-                        <div key={feature.text} className="flex items-center gap-2">
-                          <feature.icon className="h-5 w-5 text-primary" />
-                          <span className="text-sm">{feature.text}</span>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">To</p>
+                      <p className="font-medium">{bookingData.dropoff}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Date & Time</p>
+                      <p className="font-medium">
+                        {new Date(bookingData.date).toLocaleDateString()} at {bookingData.time}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Passengers</p>
+                      <p className="font-medium">{bookingData.passengers}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Car className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Distance</p>
+                      <p className="font-medium">{bookingData.distance} km</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => router.back()}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Booking
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Vehicle Selection */}
+          <div className="md:col-span-2">
+            <div className="grid gap-4 sm:gap-6">
+              {vehicles.map((vehicle) => (
+                <motion.div
+                  key={vehicle.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Card
+                    className={`cursor-pointer transition-all ${
+                      selectedVehicle === vehicle.id
+                        ? "border-primary ring-2 ring-primary"
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() => handleVehicleSelect(vehicle.id)}
+                  >
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                        <img
+                          src={vehicle.image}
+                          alt={vehicle.name}
+                          className="w-24 h-24 sm:w-32 sm:h-32 object-contain"
+                        />
+                        <div className="flex-grow w-full">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                            <div>
+                              <h3 className="text-lg sm:text-xl font-semibold">{vehicle.name}</h3>
+                              <p className="text-sm sm:text-base text-muted-foreground">{vehicle.price}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Base Price</p>
+                              <p className="font-semibold text-primary">
+                                {formatPrice(vehicle.basePrice)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{vehicle.capacity} Seats</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {vehicle.features.map((feature) => (
+                                <span
+                                  key={feature}
+                                  className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs sm:text-sm"
+                                >
+                                  {feature}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {vehicle.amenities.map((amenity) => (
-                        <span
-                          key={amenity}
-                          className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="text-lg font-bold text-primary">
-                        {vehicle.price}
                       </div>
-                      <Button 
-                        className="rounded-full"
-                        onClick={() => {
-                          // Here you would typically handle the vehicle selection
-                          // and proceed to the next step of booking
-                          console.log("Selected vehicle:", vehicle.name);
-                        }}
-                      >
-                        Select Vehicle
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Amenities Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Premium Amenities</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Enjoy a comfortable and luxurious journey with our premium amenities
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {amenities.map((amenity, index) => (
-              <motion.div
-                key={amenity.title}
-                className="bg-card rounded-xl p-6 border border-border/50"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <amenity.icon className="h-8 w-8 text-primary mb-4" />
-                <h3 className="text-lg font-semibold mb-2">{amenity.title}</h3>
-                <p className="text-muted-foreground">{amenity.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Complete Your Booking?</h2>
-            <p className="text-lg opacity-90 mb-8">
-              Choose your preferred vehicle and proceed with your booking
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href={getBackLink()}>
-                <Button size="lg" variant="secondary" className="rounded-full">
-                  Back to Booking
-                </Button>
-              </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="rounded-full border-white text-white hover:bg-white/10"
-              >
-                Contact Us
-              </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
+
+            {selectedVehicle && (
+              <div className="mt-6">
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handleContinue}
+                >
+                  Continue to Personal Details
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 } 

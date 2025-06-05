@@ -5,7 +5,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Clock, Star, Car, DollarSign, LifeBuoy, 
-  MousePointerClick, ChevronRight, MapPin 
+  MousePointerClick, ChevronRight, MapPin,
+  Shield, Users, Award, ThumbsUp
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,12 +24,13 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section with Modern Gradient and Highlight - Compact Landing Page Layout */}
-      <div className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center bg-gradient-to-br from-primary/40 via-blue-200 to-white overflow-hidden">
+      <div className="relative w-full h-auto md:h-[700px] flex flex-col md:flex-row md:items-center md:justify-center bg-gradient-to-br from-primary/40 via-blue-200 to-white md:overflow-hidden py-8">
         {/* Radial highlight behind text */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2/3 h-2/3 pointer-events-none" style={{ zIndex: 1 }}>
           <div className="w-full h-full rounded-full bg-white/40 blur-3xl opacity-60" />
         </div>
-        <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center justify-between h-full px-4 py-8 w-full gap-8">
+        {/* Adjusted flex properties for mobile responsiveness */}
+        <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between px-4 py-8 w-full gap-8">
           {/* Left Column (Text Content) */}
           <motion.div 
             className="flex-1 space-y-4 lg:pr-8 text-black text-center lg:text-left flex flex-col justify-center items-center lg:items-start"
@@ -59,63 +61,38 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 mt-6 justify-center lg:justify-start">
-              <Button 
-                size="lg" 
-                className="rounded-full bg-primary hover:bg-primary/90 text-base px-6 py-3 shadow transition-transform hover:scale-105"
-                onClick={() => setActiveTab("one-way")}
-              >
-                <span className="flex items-center gap-2">
-                  <MousePointerClick className="h-4 w-4" /> Book Now
-                </span>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="rounded-full border-primary text-primary hover:bg-primary/10 text-base px-6 py-3 shadow transition-transform hover:scale-105"
-                asChild
-              >
-                <Link href="/fleet" className="flex items-center gap-2">
-                  <Car className="h-4 w-4" /> View Our Fleet
-                </Link>
-              </Button>
-            </div>
           </motion.div>
           {/* Right Column (Booking Form) */}
           <motion.div 
-            className="w-full max-w-xl flex justify-center lg:justify-end p-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="w-full lg:w-[500px] bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-primary/30 w-full">
-              <h2 className="text-xl font-bold mb-4 text-center text-black dark:text-white">Book Your Ride</h2>
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-4 bg-primary/10 rounded-full">
-                  <TabsTrigger value="one-way">One Way</TabsTrigger>
-                  <TabsTrigger value="round-trip">Round Trip</TabsTrigger>
-                  <TabsTrigger value="local">Local</TabsTrigger>
-                  <TabsTrigger value="airport">Airport</TabsTrigger>
-                </TabsList>
-                <TabsContent value="one-way">
-                  <OneWayBookingForm />
-                </TabsContent>
-                <TabsContent value="round-trip">
-                  <RoundTripBookingForm />
-                </TabsContent>
-                <TabsContent value="local">
-                  <LocalBookingForm />
-                </TabsContent>
-                <TabsContent value="airport">
-                  <AirportBookingForm />
-                </TabsContent>
-              </Tabs>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="one-way">One Way</TabsTrigger>
+                <TabsTrigger value="round-trip">Round Trip</TabsTrigger>
+                <TabsTrigger value="local">Local</TabsTrigger>
+                <TabsTrigger value="airport">Airport</TabsTrigger>
+              </TabsList>
+              <TabsContent value="one-way">
+                <OneWayBookingForm />
+              </TabsContent>
+              <TabsContent value="round-trip">
+                <RoundTripBookingForm />
+              </TabsContent>
+              <TabsContent value="local">
+                <LocalBookingForm />
+              </TabsContent>
+              <TabsContent value="airport">
+                <AirportBookingForm />
+              </TabsContent>
+            </Tabs>
           </motion.div>
         </div>
         {/* Scroll Indicator */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center text-primary">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex-col items-center text-primary hidden md:flex">
           <span className="text-xs mb-1">Scroll to explore</span>
           <div className="w-5 h-8 border-2 border-primary/40 rounded-full flex justify-center">
             <motion.div 
@@ -292,7 +269,7 @@ export default function HomePage() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className="py-20 bg-muted/30">
+        <section className="py-20 bg-gradient-to-br from-primary/5 via-blue-50 to-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
@@ -309,29 +286,33 @@ export default function HomePage() {
               <div className="space-y-8">
                 {[
                   {
-                    icon: <Clock className="h-5 w-5 text-primary" />,
-                    title: "Reliable & Punctual",
-                    description: "Timely pickups and safe drop-offs for a stress-free journey."
+                    icon: <Shield className="h-5 w-5 text-primary" />,
+                    title: "Safe & Reliable",
+                    description: "Your safety is our top priority. Our vehicles are regularly maintained and our drivers are thoroughly vetted.",
+                    stats: "100% Safety Record"
                   },
                   {
-                    icon: <Star className="h-5 w-5 text-primary" />,
-                    title: "Experienced Drivers",
-                    description: "Professional drivers with extensive route knowledge and training."
+                    icon: <Users className="h-5 w-5 text-primary" />,
+                    title: "Professional Drivers",
+                    description: "Experienced drivers with extensive route knowledge and excellent customer service skills.",
+                    stats: "500+ Expert Drivers"
                   },
                   {
-                    icon: <Car className="h-5 w-5 text-primary" />,
-                    title: "Modern & Clean Fleet",
-                    description: "Well-maintained vehicles for comfortable and safe travel."
+                    icon: <Award className="h-5 w-5 text-primary" />,
+                    title: "Premium Service",
+                    description: "Luxury vehicles with modern amenities for a comfortable and enjoyable journey.",
+                    stats: "4.9/5 Customer Rating"
                   },
                   {
-                    icon: <DollarSign className="h-5 w-5 text-primary" />,
-                    title: "Transparent Pricing",
-                    description: "Clear and upfront pricing with no hidden costs."
+                    icon: <ThumbsUp className="h-5 w-5 text-primary" />,
+                    title: "Customer Satisfaction",
+                    description: "We go above and beyond to ensure your complete satisfaction with our service.",
+                    stats: "10,000+ Happy Customers"
                   }
                 ].map((feature, index) => (
                   <motion.div 
                     key={feature.title}
-                    className="flex gap-4 items-start"
+                    className="flex gap-4 items-start bg-white/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -340,15 +321,18 @@ export default function HomePage() {
                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                       {feature.icon}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{feature.title}</h3>
-                      <p className="text-muted-foreground">{feature.description}</p>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-semibold">{feature.title}</h3>
+                        <span className="text-sm font-medium text-primary">{feature.stats}</span>
+                      </div>
+                      <p className="text-muted-foreground mt-1">{feature.description}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
               
-              {/* Right Column - Image */}
+              {/* Right Column - Image with Stats */}
               <motion.div 
                 className="relative rounded-2xl overflow-hidden aspect-[4/3]"
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -363,7 +347,17 @@ export default function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
                   <div className="p-6 text-white">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">24/7</div>
+                        <div className="text-sm opacity-90">Service Available</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold">100%</div>
+                        <div className="text-sm opacity-90">Safety Record</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -371,7 +365,7 @@ export default function HomePage() {
                       </div>
                       <span className="text-sm font-medium">4.9/5 Rating</span>
                     </div>
-                    <p className="text-sm opacity-90">Based on 1000+ customer reviews</p>
+                    <p className="text-sm opacity-90 mt-1">Based on 1000+ customer reviews</p>
                   </div>
                 </div>
               </motion.div>

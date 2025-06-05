@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { UserNav } from "@/components/layout/user-nav";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,11 +28,16 @@ export function Header() {
           <Link href="/about" className="text-base font-medium hover:text-primary transition-colors">About</Link>
           <Link href="/contact" className="text-base font-medium hover:text-primary transition-colors">Contact</Link>
         </nav>
-        {/* Support Phone (desktop) */}
-        <div className="hidden md:flex items-center gap-2 ml-8">
-          <Phone className="h-5 w-5 text-primary" />
-          <span className="font-semibold">24/7</span>
-          <a href="tel:+919876543210" className="underline hover:text-primary ml-1 whitespace-nowrap">+91 98765 43210</a>
+        {/* Right side items */}
+        <div className="hidden md:flex items-center gap-4">
+          {/* User Navigation */}
+          <UserNav />
+          {/* Support Phone */}
+          <div className="flex items-center gap-2">
+            <Phone className="h-5 w-5 text-primary" />
+            <span className="font-semibold">24/7</span>
+            <a href="tel:+919876543210" className="underline hover:text-primary ml-1 whitespace-nowrap">+91 98765 43210</a>
+          </div>
         </div>
         {/* Hamburger (mobile) */}
         <button
@@ -63,6 +69,10 @@ export function Header() {
             <Link href="/packages" onClick={() => setIsMenuOpen(false)} className="hover:text-primary">Packages</Link>
             <Link href="/about" onClick={() => setIsMenuOpen(false)} className="hover:text-primary">About</Link>
             <Link href="/contact" onClick={() => setIsMenuOpen(false)} className="hover:text-primary">Contact</Link>
+            {/* Mobile User Navigation */}
+            <div className="mt-8">
+              <UserNav />
+            </div>
             <div className="flex items-center gap-2 mt-8">
               <Phone className="h-5 w-5 text-primary" />
               <span className="font-semibold">24/7</span>

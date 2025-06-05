@@ -2,228 +2,174 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarIcon, MapPin } from "lucide-react";
-import { format } from "date-fns";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const formSchema = z.object({
-  from: z.string().min(1, "Pickup location is required"),
-  to: z.string().min(1, "Destination is required"),
-  date: z.date({
-    required_error: "Please select a date",
-  }),
-  time: z.string().min(1, "Time is required"),
-  passengers: z.string().min(1, "Number of passengers is required"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { CalendarIcon, MapPin, Clock, Users } from "lucide-react";
+import { calculatePrice, formatPrice } from "@/lib/price-calculator";
 
 export function OneWayBookingForm() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      from: "",
-      to: "",
-      passengers: "1",
-    },
+  const [bookingData, setBookingData] = useState({
+    pickup: "",
+    dropoff: "",
+    date: new Date(),
+    time: "",
+    passengers: 1,
+    distance: 0,
   });
 
-  async function onSubmit(values: FormValues) {
-    setIsSubmitting(true);
-    try {
-      // Construct the URL with booking details
-      const searchParams = new URLSearchParams({
-        type: "one-way",
-        from: values.from,
-        to: values.to,
-        date: format(values.date, "yyyy-MM-dd"),
-        time: values.time,
-        passengers: values.passengers,
-      });
+  const [estimatedPrice, setEstimatedPrice] = useState(0);
 
-      // Redirect to vehicle selection page
-      router.push(`/vehicles?${searchParams.toString()}`);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Store booking data in localStorage
+    localStorage.setItem("bookingData", JSON.stringify({
+      ...bookingData,
+      type: "one-way",
+      basePrice: 2500, // Base price for one-way trips
+      pricePerKm: 15,  // Price per kilometer
+    }));
+
+    // Navigate to vehicle selection
+    router.push("/vehicles");
+  };
+
+  // Calculate distance when pickup and dropoff are entered
+  const calculateDistance = () => {
+    if (bookingData.pickup && bookingData.dropoff) {
+      // This is a placeholder. In a real app, you would use a mapping service API
+      const mockDistance = Math.floor(Math.random() * 50) + 10; // Random distance between 10-60 km
+      setBookingData(prev => ({ ...prev, distance: mockDistance }));
+      
+      // Calculate estimated price
+      const price = calculatePrice({
+        packageId: 1, // One-way package ID
+        distance: mockDistance,
+        passengers: bookingData.passengers,
       });
-    } finally {
-      setIsSubmitting(false);
+      setEstimatedPrice(price);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full max-w-2xl mx-auto">
-        <FormField
-          control={form.control}
-          name="from"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Pickup Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter pickup location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="to"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Destination</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter destination" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={`w-full pl-3 text-left font-normal bg-white text-black ${
-                          !field.value && "text-muted-foreground"
-                        }`}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date(new Date().setHours(0, 0, 0, 0))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Time</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="bg-white text-black">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Array.from({ length: 24 }).map((_, i) => {
-                      const hour = i.toString().padStart(2, "0");
-                      return (
-                        <SelectItem key={hour} value={`${hour}:00`}>
-                          {`${hour}:00`}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="pickup">Pickup Location</Label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              id="pickup"
+              placeholder="Enter pickup location"
+              className="pl-9"
+              value={bookingData.pickup}
+              onChange={(e) => {
+                setBookingData({ ...bookingData, pickup: e.target.value });
+                calculateDistance();
+              }}
+              required
+            />
+          </div>
         </div>
 
-        <FormField
-          control={form.control}
-          name="passengers"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Passengers</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="bg-white text-black">
-                    <SelectValue placeholder="Select passengers" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(
-                    (num) => (
-                      <SelectItem key={num} value={num}>
-                        {num} {num === "1" ? "Passenger" : "Passengers"}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="dropoff">Drop-off Location</Label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              id="dropoff"
+              placeholder="Enter drop-off location"
+              className="pl-9"
+              value={bookingData.dropoff}
+              onChange={(e) => {
+                setBookingData({ ...bookingData, dropoff: e.target.value });
+                calculateDistance();
+              }}
+              required
+            />
+          </div>
+        </div>
 
-        <Button 
-          type="submit" 
-          className="w-full rounded-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Processing..." : "Continue to Vehicle Selection"}
-        </Button>
-      </form>
-    </Form>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {bookingData.date ? format(bookingData.date, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={bookingData.date}
+                  onSelect={(date) => setBookingData({ ...bookingData, date: date || new Date() })}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="time">Time</Label>
+            <Input
+              id="time"
+              type="time"
+              value={bookingData.time}
+              onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="passengers">Number of Passengers</Label>
+          <Select
+            value={bookingData.passengers.toString()}
+            onValueChange={(value) => {
+              setBookingData({ ...bookingData, passengers: parseInt(value) });
+              calculateDistance();
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select passengers" />
+            </SelectTrigger>
+            <SelectContent>
+              {[1, 2, 3, 4, 5, 6].map((num) => (
+                <SelectItem key={num} value={num.toString()}>
+                  {num} {num === 1 ? "Passenger" : "Passengers"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {bookingData.distance > 0 && (
+        <div className="bg-primary/5 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Estimated Distance</p>
+              <p className="font-semibold">{bookingData.distance} km</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Estimated Price</p>
+              <p className="font-semibold text-primary">{formatPrice(estimatedPrice)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Button type="submit" className="w-full">
+        Continue to Vehicle Selection
+      </Button>
+    </form>
   );
 } 

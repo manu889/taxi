@@ -1,9 +1,11 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
 import Link from "next/link";
-import { User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogIn, UserPlus, LogOut, User } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,74 +14,74 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 export function UserNav() {
-  const { data: session } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!session) {
-    return (
-      <div className="flex items-center gap-4">
-        <Link href="/auth/login">
-          <Button variant="ghost">Login</Button>
-        </Link>
-        <Link href="/auth/register">
-          <Button>Register</Button>
-        </Link>
-      </div>
-    );
-  }
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await supabase.auth.signOut();
+      router.refresh();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <User className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{session.user?.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {session.user?.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard">Dashboard</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/bookings">My Bookings</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/profile">Profile</Link>
-        </DropdownMenuItem>
-        {session.user?.role === "ADMIN" && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin">Admin Panel</Link>
-            </DropdownMenuItem>
-          </>
-        )}
-        {session.user?.role === "CORPORATE_ADMIN" && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/corporate">Corporate Portal</Link>
-            </DropdownMenuItem>
-          </>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onSelect={() => signOut({ callbackUrl: "/" })}
-        >
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-4">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground hover:text-primary"
+        asChild
+      >
+        <Link href="/auth/login">
+          <LogIn className="mr-2 h-4 w-4" />
+          Login
+        </Link>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-muted-foreground hover:text-primary"
+        asChild
+      >
+        <Link href="/auth/register">
+          <UserPlus className="mr-2 h-4 w-4" />
+          Register
+        </Link>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <User className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/profile">Profile</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/bookings">My Bookings</Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-red-600"
+            onClick={handleLogout}
+            disabled={isLoading}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Log out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 } 

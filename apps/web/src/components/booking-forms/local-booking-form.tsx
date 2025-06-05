@@ -136,79 +136,79 @@ export function LocalBookingForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full max-w-2xl mx-auto">
-        <FormField
-          control={form.control}
+            <FormField
+              control={form.control}
           name="from"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Pickup Location</FormLabel>
-              <FormControl>
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pickup Location</FormLabel>
+                  <FormControl>
                 <Input placeholder="Enter pickup location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
+            <FormField
+              control={form.control}
           name="to"
-          render={({ field }) => (
-            <FormItem>
+              render={({ field }) => (
+                <FormItem>
               <FormLabel>Destination</FormLabel>
-              <FormControl>
+                    <FormControl>
                 <Input placeholder="Enter destination" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                    </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
+            <FormField
+              control={form.control}
             name="date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
                 <FormLabel>Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
                         className={`w-full pl-3 text-left font-normal bg-white text-black ${!field.value && "text-muted-foreground"}`}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
                       disabled={(date) =>
                         date < new Date(new Date().setHours(0, 0, 0, 0))
                       }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
+            <FormField
+              control={form.control}
             name="time"
-            render={({ field }) => (
-              <FormItem>
+              render={({ field }) => (
+                <FormItem>
                 <FormLabel>Time</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
@@ -256,10 +256,10 @@ export function LocalBookingForm() {
                     )}
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <FormField
             control={form.control}
@@ -287,15 +287,15 @@ export function LocalBookingForm() {
               </FormItem>
             )}
           />
-        </div>
+            </div>
 
-        <Button 
-          type="submit" 
+              <Button 
+                type="submit" 
           className="w-full rounded-full"
           disabled={isSubmitting}
-        >
+              >
           {isSubmitting ? "Processing..." : "Continue to Vehicle Selection"}
-        </Button>
+              </Button>
       </form>
     </Form>
   );
