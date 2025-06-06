@@ -170,6 +170,161 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Popular Routes Section */}
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
+                Popular Routes
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold">Frequently Booked Routes</h2>
+              <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                Discover our most popular routes with competitive pricing
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Column 1 */}
+              <div className="space-y-4 text-center">
+                <h3 className="text-xl font-semibold mb-4 text-primary">Airport Routes</h3>
+                <ul className="space-y-3">
+                  {[
+                    { from: "Mysore", to: "Bangalore Airport" },
+                    { from: "Mysore", to: "Mangalore Airport" },
+                    { from: "Mysore", to: "Coimbatore Airport" },
+                    { from: "Mysore", to: "Chennai Airport" },
+                    { from: "Mysore", to: "Hyderabad Airport" }
+                  ].map((route) => (
+                    <li key={route.to} className="flex items-center justify-center gap-2 group">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <Link 
+                        href={`/airport?from=${route.from}&to=${route.to.replace(" ", "%20")}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {route.from} → {route.to}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 2 */}
+              <div className="space-y-4 text-center">
+                <h3 className="text-xl font-semibold mb-4 text-primary">Tourist Destinations</h3>
+                <ul className="space-y-3">
+                  {[
+                    { from: "Mysore", to: "Ooty" },
+                    { from: "Mysore", to: "Coorg" },
+                    { from: "Mysore", to: "Wayanad" },
+                    { from: "Mysore", to: "Hampi" },
+                    { from: "Mysore", to: "Bandipur" },
+                    { from: "Mysore", to: "Chikmagalur" }
+                  ].map((route) => (
+                    <li key={route.to} className="flex items-center justify-center gap-2 group">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <Link 
+                        href={`/booking?from=${route.from}&to=${route.to}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {route.from} → {route.to}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 3 */}
+              <div className="space-y-4 text-center">
+                <h3 className="text-xl font-semibold mb-4 text-primary">City Routes</h3>
+                <ul className="space-y-3">
+                  {[
+                    { from: "Mysore", to: "Bangalore" },
+                    { from: "Mysore", to: "Hassan" },
+                    { from: "Mysore", to: "Mandya" },
+                    { from: "Mysore", to: "Madikeri" },
+                    { from: "Mysore", to: "Chamarajanagar" },
+                    { from: "Mysore", to: "Kollegal" }
+                  ].map((route) => (
+                    <li key={route.to} className="flex items-center justify-center gap-2 group">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <Link 
+                        href={`/booking?from=${route.from}&to=${route.to}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {route.from} → {route.to}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Packages Section */}
+        <section className="py-20 bg-gradient-to-br from-primary/10 via-white/80 to-primary/5 dark:from-gray-900/80 dark:via-gray-800/90 dark:to-gray-900/80">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
+                Tour Packages
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold">Explore Our Tour Packages</h2>
+              <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+                Discover our curated packages for city tours, outstation trips, and group travel
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "City Tours",
+                  description: "Explore Mysore's rich heritage with our guided city tour packages.",
+                  icon: "🏰",
+                  link: "/packages?type=city"
+                },
+                {
+                  title: "Outstation Trips",
+                  description: "Comfortable travel packages to popular destinations like Coorg, Ooty, and more.",
+                  icon: "🏞️",
+                  link: "/packages?type=outstation"
+                },
+                {
+                  title: "Group Tours",
+                  description: "Special packages for group travel with spacious vehicles and experienced drivers.",
+                  icon: "👥",
+                  link: "/packages?type=group"
+                }
+              ].map((package, index) => (
+                <motion.div
+                  key={package.title}
+                  className="bg-card rounded-xl p-6 border border-border/50 hover:shadow-lg transition-all group"
+                  whileHover={{ y: -5 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-2xl mb-4">
+                    {package.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{package.title}</h3>
+                  <p className="text-muted-foreground mb-4">{package.description}</p>
+                  <Link href={package.link} className="inline-flex items-center text-primary font-medium">
+                    View Packages
+                    <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link href="/packages">
+                <Button size="lg" className="bg-primary hover:bg-primary/90">
+                  View All Packages
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Taxi Packages Section (moved up) */}
         <section className="py-20 bg-gradient-to-br from-primary/10 via-white/80 to-primary/5 dark:from-gray-900/80 dark:via-gray-800/90 dark:to-gray-900/80">
           <div className="container mx-auto px-4">
