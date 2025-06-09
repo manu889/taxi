@@ -33,6 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LocationSearch } from "@/components/location-search";
+import { Location } from "@/lib/services/google-maps-service";
 
 const airports = [
   { value: "mysore", label: "Mysore Airport" },
@@ -51,7 +53,6 @@ const formSchema = z.object({
   }),
   time: z.string().min(1, "Time is required"),
   flightNumber: z.string().optional(), // Flight number is optional for drop off
-  passengers: z.string().min(1, "Number of passengers is required"),
 }).superRefine((data, ctx) => {
   if (data.bookingType === 'pickup' && !airports.some(airport => airport.value === data.from)) {
     ctx.addIssue({
@@ -74,6 +75,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function AirportBookingForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
+  const [dropLocation, setDropLocation] = useState<Location | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -83,7 +86,6 @@ export function AirportBookingForm() {
       from: "",
       to: "",
       flightNumber: "",
-      passengers: "1",
     },
   });
 
@@ -92,7 +94,6 @@ export function AirportBookingForm() {
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true);
     try {
-      // Construct the URL with booking details
       const searchParams = new URLSearchParams({
         type: "airport",
         bookingType: values.bookingType,
@@ -100,11 +101,17 @@ export function AirportBookingForm() {
         to: values.to,
         date: format(values.date, "yyyy-MM-dd"),
         time: values.time,
-        ...(values.flightNumber && { flightNumber: values.flightNumber }), // Include flight number if available
-        passengers: values.passengers,
+        ...(values.flightNumber && { flightNumber: values.flightNumber }),
+        ...(pickupLocation && {
+          pickupLat: pickupLocation.lat.toString(),
+          pickupLng: pickupLocation.lng.toString(),
+        }),
+        ...(dropLocation && {
+          dropLat: dropLocation.lat.toString(),
+          dropLng: dropLocation.lng.toString(),
+        }),
       });
 
-      // Redirect to vehicle selection page
       router.push(`/vehicles?${searchParams.toString()}`);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -143,7 +150,6 @@ export function AirportBookingForm() {
           )}
         />
 
-        {/* Group Pickup/Drop-off fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {bookingType === 'pickup' ? (
             <FormField
@@ -178,7 +184,15 @@ export function AirportBookingForm() {
                 <FormItem>
                   <FormLabel>Pickup Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter pickup location" {...field} />
+                    <LocationSearch
+                      name="from"
+                      label="Pickup Location"
+                      placeholder="Enter pickup location"
+                      onLocationSelect={(location) => {
+                        setPickupLocation(location);
+                        field.onChange(location.address);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -217,19 +231,24 @@ export function AirportBookingForm() {
               name="to"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Destination</FormLabel>
+                  <FormLabel>Drop-off Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter destination" {...field} />
+                    <LocationSearch
+                      name="to"
+                      label="Drop-off Location"
+                      placeholder="Enter drop-off location"
+                      onLocationSelect={(location) => {
+                        setDropLocation(location);
+                        field.onChange(location.address);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
-        </div>
 
-        {/* Group Date and Time fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
             name="date"
@@ -304,7 +323,7 @@ export function AirportBookingForm() {
             name="flightNumber"
               render={({ field }) => (
                 <FormItem>
-                <FormLabel>Flight Number</FormLabel>
+                <FormLabel>Flight Number (Optional)</FormLabel>
                   <FormControl>
                   <Input placeholder="Enter flight number" {...field} />
                   </FormControl>
@@ -314,36 +333,9 @@ export function AirportBookingForm() {
             />
         )}
 
-        <FormField
-          control={form.control}
-          name="passengers"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Passengers</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="bg-white text-black">
-                    <SelectValue placeholder="Select passengers" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => (i + 1).toString()).map(
-                    (num) => (
-                      <SelectItem key={num} value={num}>
-                        {num} {num === "1" ? "Passenger" : "Passengers"}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
               <Button 
                 type="submit" 
-          className="w-full rounded-full"
+          className="w-full"
           disabled={isSubmitting}
               >
           {isSubmitting ? "Processing..." : "Continue to Vehicle Selection"}
